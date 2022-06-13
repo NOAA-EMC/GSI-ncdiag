@@ -1,37 +1,17 @@
-cmake_minimum_required(VERSION 3.19)
+list(APPEND NCDIAG_SRC_lib
+nc_diag_fson.f90 nc_diag_read_mod.F90 nc_diag_res.f90 nc_diag_write_mod.F90
+ncd_kinds.F90 ncdc_cli_process.F90 ncdc_climsg.F90 ncdc_data.F90 ncdc_data_MPI.F90
+ncdc_dims.F90 ncdc_metadata.F90 ncdc_realloc.F90 ncdc_state.F90 ncdc_types.f90
+ncdc_vars.F90 ncdf_path_m.F90 ncdf_string_m.f90 ncdf_value_m.f90 ncdr_alloc_assert.f90
+ncdr_attrs.f90 ncdr_attrs_fetch.f90 ncdr_check.f90 ncdr_climsg.F90 ncdr_dims.f90
+ncdr_global_attrs.f90 ncdr_global_attrs_fetch.f90 ncdr_realloc_mod.F90 ncdr_state.f90
+ncdr_types.f90 ncdr_vars.f90 ncdr_vars_fetch.f90 ncdres_climsg.F90 ncdw_chaninfo.F90
+ncdw_ciresize.F90 ncdw_climsg.F90 ncdw_data2d.F90 ncdw_dresize.F90 ncdw_lheader.F90
+ncdw_metadata.F90 ncdw_mresize.F90 ncdw_realloc.F90 ncdw_state.f90 ncdw_strarrutils.F90
+ncdw_types.F90 ncdw_varattr.F90 netcdf_unlimdims.F90)
 
-project(ncdiag
-        VERSION 1.0.0
-        LANGUAGES Fortran)
-
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
-include(${PROJECT_NAME}_compiler_flags)
-include(GNUInstallDirs)
-
-if(NOT CMAKE_BUILD_TYPE MATCHES "^(Debug|Release|RelWithDebInfo|MinSizeRel)$")
-  message(STATUS "Setting build type to 'Release' as none was specified.")
-  set(CMAKE_BUILD_TYPE
-      "Release"
-      CACHE STRING "Choose the type of build." FORCE)
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
-endif()
-
-if(NOT CMAKE_Fortran_COMPILER_ID MATCHES "^(GNU|Intel)$")
-  message(WARNING "${CMAKE_Fortran_COMPILER_ID} is not supported.")
-endif()
-
-option(ENABLE_NCDIAG_SERIAL "Enable Serial NetCDF diagnostics" ON)
-
-# Dependencies
-find_package(MPI REQUIRED)
-find_package(NetCDF REQUIRED COMPONENTS Fortran)
-
-# Echo user options
-message(STATUS "ENABLE_NCDIAG_SERIAL ... ${ENABLE_NCDIAG_SERIAL}")
-
-# Get list of files
-include(ncdiag_files.cmake)
+list(APPEND NCDIAG_SRC_app
+nc_diag_cat.F90 test_nc_unlimdims.F90)
 
 set(module_dir "${CMAKE_CURRENT_BINARY_DIR}/include/ncdiag")
 add_library(ncdiag STATIC ${NCDIAG_SRC_lib})
@@ -95,7 +75,7 @@ export(EXPORT ${PROJECT_NAME}Exports
        FILE ${PROJECT_NAME}-targets.cmake)
 
 configure_package_config_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/PackageConfig.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/PackageConfig.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config.cmake
   INSTALL_DESTINATION ${CONFIG_INSTALL_DESTINATION})
 install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config.cmake
         DESTINATION ${CONFIG_INSTALL_DESTINATION})
