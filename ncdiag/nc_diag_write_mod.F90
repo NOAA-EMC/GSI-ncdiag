@@ -220,7 +220,8 @@ module nc_diag_write_mod
         nc_diag_metadata_allocmulti, &
         nc_diag_metadata_prealloc_vars, &
         nc_diag_metadata_prealloc_vars_storage, &
-        nc_diag_metadata_prealloc_vars_storage_all
+        nc_diag_metadata_prealloc_vars_storage_all, &
+        nc_diag_metadata_to_single
     
     ! Load data2d writing API + auxillary functions for our use
     use ncdw_data2d, only: nc_diag_data2d, &
