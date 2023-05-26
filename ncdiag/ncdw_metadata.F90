@@ -132,7 +132,7 @@ module ncdw_metadata
     use ncdw_types, only: NLAYER_BYTE, NLAYER_SHORT, NLAYER_LONG, &
         NLAYER_FLOAT, NLAYER_DOUBLE, NLAYER_STRING, &
         NLAYER_DEFAULT_ENT, NLAYER_MULTI_BASE, NLAYER_CHUNKING, &
-        NLAYER_COMPRESSION
+        NLAYER_COMPRESSION, NLAYER_FILL_FLOAT
     use ncdw_strarrutils, only: max_len_string_array
     
     use ncdw_realloc, only: nc_diag_realloc
@@ -169,6 +169,11 @@ module ncdw_metadata
             nc_diag_metadata_rsingle, nc_diag_metadata_rdouble, &
             nc_diag_metadata_string
     end interface nc_diag_metadata
+
+    interface nc_diag_metadata_to_single
+        module procedure nc_diag_metadata_to_single_, &
+            nc_diag_metadata_to_single_operator
+    end interface nc_diag_metadata_to_single
     
     contains
         subroutine nc_diag_metadata_allocmulti(multiplier)
@@ -1191,6 +1196,107 @@ module ncdw_metadata
             diag_metadata_store%stor_i_arr(var_index)%index_arr(diag_metadata_store%stor_i_arr(var_index)%icount) = &
                 diag_metadata_store%acount(5)
         end subroutine nc_diag_metadata_rdouble
+
+        ! nc_diag_metadata_to_single_ - input real(r_double), to be converted to single
+        ! Corresponding NetCDF4 type: single
+        ! Checks for nans and converts to netCDF4, r_single fill
+        subroutine nc_diag_metadata_to_single_(metadata_name, metadata_value)
+            character(len=*), intent(in)           :: metadata_name
+            real(r_double), intent(in)             :: metadata_value
+            real(r_single)                         :: f_metadata_value
+
+#ifdef ENABLE_ACTION_MSGS
+            character(len=1000)                   :: action_str
+
+            if (nclayer_enable_action) then
+                write(action_str, "(A, F0.5, A)") "nc_diag_metadata_to_single_(metadata_name = " // metadata_name // ", metadata_value = ", metadata_value, ")"
+                call nclayer_actionm(trim(action_str))
+            end if
+#endif
+
+            if(isnan(metadata_value)) then
+               call nc_diag_metadata(metadata_name, NLAYER_FILL_FLOAT)
+            else
+               f_metadata_value = sngl(metadata_value)
+               call nc_diag_metadata(metadata_name, f_metadata_value)
+            endif
+            
+        end subroutine nc_diag_metadata_to_single_
+
+        ! nc_diag_metadata_to_single_operator -
+        ! Inputs: real(r_double), real(r_double), character(2)
+        !         two operands and an operator, result to be converted to single
+        ! Corresponding NetCDF4 type: single
+        ! Checks for nans and converts to netCDF4 r_single fill
+        subroutine nc_diag_metadata_to_single_operator(metadata_name, &
+           metadata_operand_x, metadata_operand_y, metadata_operator)
+
+            character(len=*), intent(in)           :: metadata_name
+            real(r_double), intent(in)             :: metadata_operand_x
+            real(r_double), intent(in)             :: metadata_operand_y
+            character(len=2), intent(in)           :: metadata_operator
+            real(r_single)                         :: f_metadata_value
+
+#ifdef ENABLE_ACTION_MSGS
+            character(len=1000)                   :: action_str
+
+            if (nclayer_enable_action) then
+                write(action_str, "(A, F0.5, ', ', F0.5, A, A, A)") &
+                  "nc_diag_metadata_to_single_operator(metadata_name = " &
+                  // metadata_name // ", metadata_operands = ", &
+                  metadata_operand_x, metadata_operand_y, &
+                  ", metadata_operator = ", metadata_operator, ")"
+                call nclayer_actionm(trim(action_str))
+            end if
+#endif
+
+            !Check for known operators.  If invalid, set output to fill.
+            select case (trim(metadata_operator))
+               case("-")
+                  if(isnan(metadata_operand_x) .or. isnan(metadata_operand_y)) then
+                     f_metadata_value = NLAYER_FILL_FLOAT
+                  else
+                     f_metadata_value = &
+                        sngl(metadata_operand_x - metadata_operand_y)
+                  endif
+               case("+")
+                  if(isnan(metadata_operand_x) .or. isnan(metadata_operand_y)) then
+                     f_metadata_value = NLAYER_FILL_FLOAT
+                  else
+                     f_metadata_value = &
+                        sngl(metadata_operand_x + metadata_operand_y)
+                  endif
+               case("*")
+                  if(isnan(metadata_operand_x) .or. isnan(metadata_operand_y)) then
+                     f_metadata_value = NLAYER_FILL_FLOAT
+                  else
+                     f_metadata_value = &
+                        sngl(metadata_operand_x * metadata_operand_y)
+                  endif
+               case("/")
+                  if(isnan(metadata_operand_x) .or. isnan(metadata_operand_y)) then
+                     f_metadata_value = NLAYER_FILL_FLOAT
+                  else
+                     f_metadata_value = &
+                        sngl(metadata_operand_x / metadata_operand_y)
+                  endif
+               case("**")
+                  if(isnan(metadata_operand_x) .or. isnan(metadata_operand_y)) then
+                     f_metadata_value = NLAYER_FILL_FLOAT
+                  else
+                     f_metadata_value = &
+                        sngl(metadata_operand_x ** metadata_operand_y)
+                  endif
+               case default
+                  f_metadata_value = NLAYER_FILL_FLOAT
+                  write(*, "(A)") " ** WARNING: Invalid metadata operator: " // &
+                    metadata_operator // ".  Writing FILL"
+            end select
+
+            ! Send the resulting value to the nc_diag_metadata interface
+            call nc_diag_metadata(metadata_name, f_metadata_value)
+            
+        end subroutine nc_diag_metadata_to_single_operator
 
         ! nc_diag_metadata - input character(len=*)
         ! Corresponding NetCDF4 type: string? char?
