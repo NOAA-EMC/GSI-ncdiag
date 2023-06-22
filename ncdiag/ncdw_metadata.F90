@@ -1234,7 +1234,7 @@ module ncdw_metadata
             character(len=*), intent(in)           :: metadata_name
             real(r_double), intent(in)             :: metadata_operand_x
             real(r_double), intent(in)             :: metadata_operand_y
-            character(len=2), intent(in)           :: metadata_operator
+            character(len=*), intent(in)           :: metadata_operator
             real(r_single)                         :: f_metadata_value
 
 #ifdef ENABLE_ACTION_MSGS
