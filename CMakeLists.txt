@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 
 project(ncdiag
-        VERSION 1.0.0
+        VERSION 1.1.1
         LANGUAGES Fortran)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
