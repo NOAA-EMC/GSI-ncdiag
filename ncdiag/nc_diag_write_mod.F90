@@ -324,7 +324,7 @@ module nc_diag_write_mod
                 if (present(append) .AND. (append .eqv. .TRUE.)) then
                     ! Open the file in append mode!
                     call nclayer_check( nf90_open(filename, NF90_WRITE, ncid, &
-                        bsize, cache_nelems = 16777216) ) ! Optimization settings
+                        bsize, cache_nelems = 16384) ) ! Optimization settings
                     
                     ! Set the append flag
                     append_only = .TRUE.
@@ -341,7 +341,7 @@ module nc_diag_write_mod
                     ! track of what file you're working on. We're returning that
                     ! here.
                     call nclayer_check( nf90_create(filename, OR(NF90_NETCDF4, NF90_CLOBBER), ncid, &
-                        0, bsize, cache_nelems = 16777216) ) ! Optimization settings
+                        0, bsize, cache_nelems = 16384) ) ! Optimization settings
                 end if
                 
                 ! Allocation sanity checks...
