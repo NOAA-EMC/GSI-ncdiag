@@ -1126,8 +1126,6 @@ module ncdw_chaninfo
 #ifdef ENABLE_ACTION_MSGS
             character(len=1000)                   :: action_str
             
-            flush_data_only_local = .false.
-            if (present(flush_data_only) flush_data_only_local = flush_data_only
             if (nclayer_enable_action) then
                 if (present(flush_data_only)) then
                     write(action_str, "(A, L, A)") "nc_diag_chaninfo_write_data(flush_data_only = ", flush_data_only, ")"
@@ -1137,6 +1135,10 @@ module ncdw_chaninfo
                 call nclayer_actionm(trim(action_str))
             end if
 #endif
+
+            flush_data_only_local = .false.
+            if (present(flush_data_only) flush_data_only_local = flush_data_only
+
             ! Check to make sure a file is open / things are loaded!
             if (init_done .AND. allocated(diag_chaninfo_store)) then
                 ! Check to see if we have any variables to write in the
