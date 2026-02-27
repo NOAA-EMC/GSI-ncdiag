@@ -618,7 +618,7 @@ module ncdw_data2d
 #endif
 
             flush_data_only_local = .false.
-            if (present(flush_data_only_local)) then
+            if (present(flush_data_only)) then
                flush_data_only_local = flush_data_only
             endif
 
