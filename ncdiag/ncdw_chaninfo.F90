@@ -1137,7 +1137,7 @@ module ncdw_chaninfo
 #endif
 
             flush_data_only_local = .false.
-            if (present(flush_data_only) flush_data_only_local = flush_data_only
+            if (present(flush_data_only)) flush_data_only_local = flush_data_only
 
             ! Check to make sure a file is open / things are loaded!
             if (init_done .AND. allocated(diag_chaninfo_store)) then
