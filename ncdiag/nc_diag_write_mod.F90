@@ -289,25 +289,25 @@ module nc_diag_write_mod
         !     result in an error with an indication that a bug has
         !     occurred.
         ! 
-        subroutine nc_diag_init(filename, append_optional)
+        subroutine nc_diag_init(filename, append)
             character(len=*),intent(in)    :: filename
-            logical, intent(in), optional  :: append_optional
+            logical, intent(in), optional  :: append
             
-            logical                        :: append
+            logical                        :: append_local
             ! Buffer size variable for NetCDF optimization settings
             ! (Not sure if this helps much...)
             integer                        :: bsize = 16777216;
 
-            append = .false.
-            if (present(append_optional)) append = append_optional
+            append_local = .false.
+            if (present(append)) append_local = append
             
 #ifdef ENABLE_ACTION_MSGS
             character(len=1000)                   :: action_str
             
             if (nclayer_enable_action) then
-                if (append) then
+                if (append_local) then
                     write(action_str, "(A, L, A)") "nc_diag_init(filename = " // trim(filename) // &
-                        ", append = ", append, ")"
+                        ", append = ", append_local, ")"
                 else
                     write(action_str, "(A)") "nc_diag_init(filename = " // trim(filename) // &
                         ", append = (not specified))"
@@ -325,7 +325,7 @@ module nc_diag_write_mod
             if (.NOT. init_done) then
                 ! Special append mode - that means that we need to
                 ! assume that all definitions are set and locked.
-                if (append .eqv. .TRUE.) then
+                if (append_local .eqv. .TRUE.) then
                     ! Open the file in append mode!
                     call nclayer_check( nf90_open(filename, NF90_WRITE, ncid, &
                         bsize, cache_nelems = 16384) ) ! Optimization settings
@@ -384,7 +384,7 @@ module nc_diag_write_mod
                 ! chaninfo/metadata/data2d to read the NetCDF files,
                 ! build a cache, and set up anything necessary to be
                 ! able to resume writing from before.
-                if (append .eqv. .TRUE.) then
+                if (append_local .eqv. .TRUE.) then
                     call nclayer_info("Loading chaninfo variables/dimensions from file:")
                     call nc_diag_chaninfo_load_def
                     

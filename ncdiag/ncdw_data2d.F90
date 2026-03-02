@@ -570,13 +570,13 @@ module ncdw_data2d
             end if
         end subroutine nc_diag_data2d_write_def
         
-        subroutine nc_diag_data2d_write_data(flush_data_only_optional)
+        subroutine nc_diag_data2d_write_data(flush_data_only)
             ! Optional internal flag to only flush data - if this is
             ! true, data flushing will be performed, and the data will
             ! NOT be locked.
-            logical, intent(in), optional         :: flush_data_only_optional
+            logical, intent(in), optional         :: flush_data_only
             
-            logical                               :: flush_data_only
+            logical                               :: flush_data_only_local
             integer(i_byte)                       :: data_type
             character(len=100)                    :: data2d_name
             
@@ -608,16 +608,16 @@ module ncdw_data2d
             character(len=1000)                   :: action_str
 #endif
 
-            flush_data_only = .false.
-            if (present(flush_data_only_optional)) then
-               flush_data_only = flush_data_only_optional
+            flush_data_only_local = .false.
+            if (present(flush_data_only)) then
+               flush_data_only_local = flush_data_only
             endif
 
 
 #ifdef ENABLE_ACTION_MSGS            
             if (nclayer_enable_action) then
-                if (present(flush_data_only)) then
-                    write(action_str, "(A, L, A)") "nc_diag_data2d_write_data(flush_data_only = ", flush_data_only, ")"
+                if (flush_data_only_local) then
+                    write(action_str, "(A, L, A)") "nc_diag_data2d_write_data(flush_data_only = ", flush_data_only_local, ")"
                 else
                     write(action_str, "(A)") "nc_diag_data2d_write_data(flush_data_only = (not specified))"
                 end if
@@ -647,7 +647,7 @@ module ncdw_data2d
                         call nclayer_info("data2d: writing " // trim(data2d_name))
                         
                         ! Warn about data inconsistencies
-                        if (.NOT. (flush_data_only)) then
+                        if (.NOT. (flush_data_only_local)) then
                             current_length_count = diag_data2d_store%stor_i_arr(curdatindex)%icount + &
                                 diag_data2d_store%rel_indexes(curdatindex)
                             
@@ -1008,7 +1008,7 @@ module ncdw_data2d
                             
                             ! Check for data flushing, and if so, update the relative indexes
                             ! and set icount to 0.
-                            if (flush_data_only) then
+                            if (flush_data_only_local) then
                                 diag_data2d_store%rel_indexes(curdatindex) = &
                                     diag_data2d_store%rel_indexes(curdatindex) + &
                                     diag_data2d_store%stor_i_arr(curdatindex)%icount
@@ -1023,7 +1023,7 @@ module ncdw_data2d
                         end if
                     end do
                     
-                    if (flush_data_only) then
+                    if (flush_data_only_local) then
 #ifdef _DEBUG_MEM_
                         print *, "In buffer flush mode!"
 #endif
