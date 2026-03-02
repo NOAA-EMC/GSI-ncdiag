@@ -444,13 +444,13 @@ module ncdw_metadata
             end if
         end subroutine nc_diag_metadata_write_def
         
-        subroutine nc_diag_metadata_write_data(flush_data_only)
+        subroutine nc_diag_metadata_write_data(flush_data_only_optional)
             ! Optional internal flag to only flush data - if this is
             ! true, data flushing will be performed, and the data will
             ! NOT be locked.
-            logical, intent(in), optional         :: flush_data_only
+            logical, intent(in), optional         :: flush_data_only_optional
             
-            logical                               :: flush_data_only_local
+            logical                               :: flush_data_only
             
             integer(i_byte)                       :: data_type
             character(len=100)                    :: data_name
@@ -473,9 +473,16 @@ module ncdw_metadata
             
 #ifdef ENABLE_ACTION_MSGS
             character(len=1000)                   :: action_str
+#endif
 
+            flush_data_only = .false.
+            if (present(flush_data_only_optional)) then
+               flush_data_only = flush_data_only_optional
+            endif
+            
+#ifdef ENABLE_ACTION_MSGS            
             if (nclayer_enable_action) then
-                if (present(flush_data_only)) then
+                if (flush_data_only) then
                     write(action_str, "(A, L, A)") "nc_diag_metadata_write_data(flush_data_only = ", flush_data_only, ")"
                 else
                     write(action_str, "(A)") "nc_diag_metadata_write_data(flush_data_only = (not specified))"
@@ -483,11 +490,6 @@ module ncdw_metadata
                 call nclayer_actionm(trim(action_str))
             end if
 #endif
-
-            flush_data_only_local = .false.
-            if (present(flush_data_only)) then
-               flush_data_only_local = flush_data_only
-            endif
 
             ! Initialization MUST occur here, not in decl...
             ! Otherwise, it'll initialize once, and never again...
@@ -510,7 +512,7 @@ module ncdw_metadata
                         call nclayer_info("metadata: writing " // trim(data_name))
                         
                         ! Warn about data inconsistencies
-                        if (.NOT. (present(flush_data_only) .AND. flush_data_only_local)) then
+                        if (.NOT. (flush_data_only)) then
                             current_length_count = diag_metadata_store%stor_i_arr(curdatindex)%icount + &
                                 diag_metadata_store%rel_indexes(curdatindex)
                             
@@ -632,7 +634,7 @@ module ncdw_metadata
                             
                             ! Check for data flushing, and if so, update the relative indexes
                             ! and set icount to 0.
-                            if (present(flush_data_only) .AND. flush_data_only_local) then
+                            if (flush_data_only) then
                                 diag_metadata_store%rel_indexes(curdatindex) = &
                                     diag_metadata_store%rel_indexes(curdatindex) + &
                                     diag_metadata_store%stor_i_arr(curdatindex)%icount
@@ -647,7 +649,7 @@ module ncdw_metadata
                         end if
                     end do
                     
-                    if (present(flush_data_only) .AND. flush_data_only_local) then
+                    if (flush_data_only) then
 #ifdef _DEBUG_MEM_
                         print *, "In buffer flush mode!"
 #endif

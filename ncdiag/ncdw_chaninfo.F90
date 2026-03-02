@@ -1104,13 +1104,13 @@ module ncdw_chaninfo
         !     errors, or even a bug. See the called subroutines'
         !     documentation for details.
         ! 
-        subroutine nc_diag_chaninfo_write_data(flush_data_only)
+        subroutine nc_diag_chaninfo_write_data(flush_data_only_optional)
             ! Optional internal flag to only flush data - if this is
             ! true, data flushing will be performed, and the data will
             ! NOT be locked.
-            logical, intent(in), optional         :: flush_data_only
+            logical, intent(in), optional         :: flush_data_only_optional
             
-            logical                               :: flush_data_only_local
+            logical                               :: flush_data_only
             
             integer(i_byte)                       :: data_type
             integer(i_long)                       :: data_type_index
@@ -1125,9 +1125,14 @@ module ncdw_chaninfo
             
 #ifdef ENABLE_ACTION_MSGS
             character(len=1000)                   :: action_str
+#endif
             
+            flush_data_only = .false.
+            if (present(flush_data_only_optional)) flush_data_only = flush_data_only_optional
+            
+#ifdef ENABLE_ACTION_MSGS
             if (nclayer_enable_action) then
-                if (present(flush_data_only)) then
+                if (flush_data_only) then
                     write(action_str, "(A, L, A)") "nc_diag_chaninfo_write_data(flush_data_only = ", flush_data_only, ")"
                 else
                     write(action_str, "(A)") "nc_diag_chaninfo_write_data(flush_data_only = (not specified))"
@@ -1135,9 +1140,6 @@ module ncdw_chaninfo
                 call nclayer_actionm(trim(action_str))
             end if
 #endif
-
-            flush_data_only_local = .false.
-            if (present(flush_data_only)) flush_data_only_local = flush_data_only
 
             ! Check to make sure a file is open / things are loaded!
             if (init_done .AND. allocated(diag_chaninfo_store)) then
@@ -1165,7 +1167,7 @@ module ncdw_chaninfo
                                 ! Warn about low data filling... but only if we are finishing
                                 ! our data write (or writing once) - basically, we're NOT in
                                 ! flushing data mode!
-                                if ((.NOT. (present(flush_data_only) .AND. flush_data_only_local)) .AND. &
+                                if ((.NOT. (flush_data_only) .AND. &
                                     ((diag_chaninfo_store%var_usage(curdatindex) + &
                                         diag_chaninfo_store%rel_indexes(curdatindex)) < diag_chaninfo_store%nchans)) then
                                     ! NOTE - I0 and TRIM are Fortran 95 specs
@@ -1306,7 +1308,7 @@ module ncdw_chaninfo
                                     
                                     ! Check for data flushing, and if so, update the relative indexes
                                     ! and set var_usage to 0.
-                                    if (present(flush_data_only) .AND. flush_data_only_local) then
+                                    if (flush_data_only) then
                                         diag_chaninfo_store%rel_indexes(curdatindex) = &
                                             diag_chaninfo_store%rel_indexes(curdatindex) + &
                                             diag_chaninfo_store%var_usage(curdatindex)
@@ -1321,7 +1323,7 @@ module ncdw_chaninfo
                             end do
                             
                             ! If we're flushing data, don't do anything...
-                            if (present(flush_data_only) .AND. flush_data_only_local) then
+                            if (flush_data_only) then
 #ifdef _DEBUG_MEM_
                                 print *, "In buffer flush mode!"
 #endif
