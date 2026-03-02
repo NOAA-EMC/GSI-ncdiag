@@ -305,9 +305,9 @@ module nc_diag_write_mod
             character(len=1000)                   :: action_str
             
             if (nclayer_enable_action) then
-                if (append_local) then
+                if (present(append)) then
                     write(action_str, "(A, L, A)") "nc_diag_init(filename = " // trim(filename) // &
-                        ", append = ", append_local, ")"
+                        ", append = ", append, ")"
                 else
                     write(action_str, "(A)") "nc_diag_init(filename = " // trim(filename) // &
                         ", append = (not specified))"
