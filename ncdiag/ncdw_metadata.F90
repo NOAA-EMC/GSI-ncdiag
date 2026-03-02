@@ -482,8 +482,8 @@ module ncdw_metadata
             
 #ifdef ENABLE_ACTION_MSGS            
             if (nclayer_enable_action) then
-                if (flush_data_only_local) then
-                    write(action_str, "(A, L, A)") "nc_diag_metadata_write_data(flush_data_only = ", flush_data_only_local, ")"
+                if (present(flush_data_only)) then
+                    write(action_str, "(A, L, A)") "nc_diag_metadata_write_data(flush_data_only = ", flush_data_only, ")"
                 else
                     write(action_str, "(A)") "nc_diag_metadata_write_data(flush_data_only = (not specified))"
                 end if
