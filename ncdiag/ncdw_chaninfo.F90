@@ -1167,7 +1167,7 @@ module ncdw_chaninfo
                                 ! Warn about low data filling... but only if we are finishing
                                 ! our data write (or writing once) - basically, we're NOT in
                                 ! flushing data mode!
-                                if ((.NOT. (flush_data_only) .AND. &
+                                if ((.NOT. flush_data_only) .AND. &
                                     ((diag_chaninfo_store%var_usage(curdatindex) + &
                                         diag_chaninfo_store%rel_indexes(curdatindex)) < diag_chaninfo_store%nchans)) then
                                     ! NOTE - I0 and TRIM are Fortran 95 specs
